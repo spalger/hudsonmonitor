@@ -23,6 +23,7 @@
 			var urlInput;
 			var errorImage;
 			var refreshDropdown;
+			var showNotificationTimeDropdown;
 			var authCheckbox;
 			var usernameInput;
 			var passwordInput;
@@ -42,6 +43,15 @@
 					errorImage.style.visibility = 'hidden';
 				}
 				
+				showNotificationTimeDropdown = document.getElementById('showNotificationTimeDropdown');
+				var showNotificationTime = localStorage.showNotificationTime || 0;
+				for (var i = 0; i < showNotificationTimeDropdown.options.length; i++) {
+					if (showNotificationTimeDropdown.options[i].value == showNotificationTime) {
+						showNotificationTimeDropdown.selectedIndex = i;
+						break;
+					}
+				}
+				
 				refreshDropdown = document.getElementById('refresh');
 				var refreshTime = localStorage.refreshTime || REFRESH_DEFAULT;
 				for (var i = 0; i < refreshDropdown.options.length; i++) {
@@ -54,6 +64,7 @@
 				authCheckbox = document.getElementById('auth');
 				usernameInput = document.getElementById('username');
 				passwordInput = document.getElementById('password');
+        showNotification = document.getElementById('showNotification');
 				if (typeof localStorage.username == 'string') {
 					authCheckbox.checked = true;
 					usernameInput.value = localStorage.username || '';
@@ -80,15 +91,50 @@
 				greenBalls = document.getElementById('greenBalls');
 				if (typeof localStorage.green == 'string')
 					greenBalls.checked = true;
+
+        showNotification = document.getElementById('showNotification');
+        if( localStorage.showNotification == 'true' )
+          showNotification.checked = true;
+
 				
 				markClean();
 			}
+
+      function requestUserPermission() {
+          try {
+              var checkboxUserPermission = document.getElementById('showNotification');
+              if (checkboxUserPermission.checked) {
+                  if (checkUserPermission())
+                      return;
+
+                  if (typeof webkitNotifications != "undefined") {
+                      webkitNotifications.requestPermission(function () {
+                          var permissionGranted = checkUserPermission();
+                          checkboxUserPermission.checked = permissionGranted;
+                      });
+                  }
+              }
+          } catch (e) { checkboxUserPermission.checked = false; alert("error getting permissions");}
+      }
+
+      function checkUserPermission() {
+          try {
+              return (webkitNotifications.checkPermission() == 0);
+          } catch (e) { return false; }
+      }
+
 			
 			function save() {
 				if (urlInput.value != '' && urlInput.value != 'http://') {
 					localStorage.url = urlInput.value.charAt(urlInput.value.length - 1) == '/' ? urlInput.value : urlInput.value + '/';
 				} else {
 					delete localStorage.url;
+				}
+				
+				if (showNotificationTimeDropdown.value != "0") {
+					localStorage.showNotificationTime = showNotificationTimeDropdown.value;
+				} else {
+					delete localStorage.showNotificationTime;
 				}
 				
 				if (refreshDropdown.value != REFRESH_DEFAULT) {
@@ -122,6 +168,12 @@
 					delete localStorage.green;
 				}
 				
+        if (showNotification.checked == true) {
+          localStorage.showNotification = 'true';
+        } else {
+          localStorage.showNotification = 'false';
+        }
+				
 				init();
 				chrome.extension.getBackgroundPage().init();
 			}
@@ -140,7 +192,7 @@
 					usernameInput.disabled = true;
 					passwordInput.disabled = true;
 				}
-				
+
 				saveButton.disabled = false;
 			}
 			
@@ -177,6 +229,29 @@
 							<option value="50">50 Minutes</option>
 							<option value="55">55 Minutes</option>
 							<option value="60">60 Minutes</option>
+						</select>
+					</td>
+				</tr>
+			</table>
+    </fieldset>
+		<fieldset>
+			<legend>Notifications</legend>
+			<table>
+				<tr>
+          <td>
+            <input type="checkbox" id="showNotification" onchange="markDirty();requestUserPermission();" /><label for="show_notification">Show desktop notifications</label>
+          </td>
+        </tr>
+				<tr>
+					<td><label for="showNotificationTimeDropdown">Hide notification after:</label></td>
+					<td colspan="2">
+						<select id="showNotificationTimeDropdown" name="showNotificationTimeDropdown" onchange="markDirty()">
+							<option value="0">never hide</option>
+							<option value="5">5 seconds</option>
+							<option value="15">15 seconds</option>
+							<option value="30">30 seconds</option>
+							<option value="60">1 minute</option>
+							<option value="300">5 minutes</option>
 						</select>
 					</td>
 				</tr>
@@ -231,4 +306,3 @@
 		</div>
 	</body>
 </html>
-
