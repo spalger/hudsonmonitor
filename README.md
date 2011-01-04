@@ -8,6 +8,10 @@ You can [install](https://chrome.google.com/extensions/detail/lnalnbkkohdcnaapee
 
 ## Changelog
 
+### Version 0.3.2
+* add 2 minutes intervall (I am so impatient)
+* add desktop notifications
+
 ### Version 0.3.1
 
 * _Feature:_ When sorting jobs by status, jobs with the same status are now ordered alphabetically
