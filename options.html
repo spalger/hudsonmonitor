@@ -53,17 +53,12 @@
 			</table>
     </fieldset>
 		<fieldset>
-			<legend>Notifications</legend>
+			<legend><input type="checkbox" id="showNotifications"/> Desktop Notifications</legend>
 			<table>
 				<tr>
-          <td>
-            <input type="checkbox" id="showNotification" onchange="markDirty();requestUserPermission();" /><label for="show_notification">Show desktop notifications</label>
-          </td>
-        </tr>
-				<tr>
-					<td><label for="showNotificationTimeDropdown">Hide notification after:</label></td>
+					<td><label for="notificationTimeout">Hide notification after:</label></td>
 					<td colspan="2">
-						<select id="showNotificationTimeDropdown" name="showNotificationTimeDropdown" onchange="markDirty()">
+						<select id="notificationTimeout" name="notificationTimeout">
 							<option value="0">never hide</option>
 							<option value="5">5 seconds</option>
 							<option value="15">15 seconds</option>
