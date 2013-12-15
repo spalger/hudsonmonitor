@@ -95,6 +95,24 @@
 				</tr>
 			</table>
 		</fieldset>
+		<fieldset>
+			<legend><input id="enableFilter" type="checkbox" name="enabled"/> Filter by job name</legend>
+			<table>
+				<tr>
+					<td><input id="filterText" type="text" name="filterText" style="width:200px"/></td>
+					<td><input id="filterCaseSensitive" type="checkbox" name="filterCaseSensitive" value="yes" title="make filter case-sensitive" checked/></td>
+				</tr>
+				<tr>
+					<td colspan="2">
+						<p>
+							The filter text is converted into a regular expression. Only things that match
+							the expression are displayed in the popup and considered for the main status
+							image.
+						</p>
+					</td>
+				</tr>
+			</table>
+		</fieldset>
 		<div class="optionform">
 			<a href="license.html">License</a>
 			<input type="button" id="save" name="save" value="Save"/>

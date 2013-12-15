@@ -1,6 +1,7 @@
 // Prefs
 var refreshTime;
 var requestUrl;
+var filterPattern;
 var auth;
 var desc;
 var green;
@@ -20,16 +21,20 @@ function init() {
         return;
     } else
         requestUrl = localStorage.url;
-    
+
     refreshTime = localStorage.refreshTime || REFRESH_DEFAULT;
     refreshTime *= 60 * 1000; // minutes in ms
-    
+
     if (typeof localStorage.username == 'string') {
         auth = window.btoa((localStorage.username || '') + ':' + (localStorage.password || ''));
     } else {
         auth = null;
     }
-    
+
+    if (typeof localStorage.filterText === 'string') {
+        filterPattern = new RegExp(localStorage.filterText, localStorage.filterCaseSensitive ? '' : 'i');
+    }
+
     doRequest();
 }
 
@@ -40,7 +45,7 @@ function doRequest() {
     xhr = new XMLHttpRequest();
     window.clearTimeout(abortTimer);
     abortTimer = window.setTimeout(xhr.abort, REQUEST_TIMEOUT);
-    
+
     try {
         xhr.onreadystatechange = checkResponse;
         xhr.onerror = handleError;
@@ -56,19 +61,26 @@ function doRequest() {
 
 function checkResponse() {
     if (xhr.readyState != 4) return;
-    
+
     if (xhr.status == 200 && xhr.responseText) {
         var response = JSON.parse(xhr.responseText);
         var topStatus = -1;
         if (response.jobs) {
-            jobs = response.jobs;
+            jobs = response.jobs.filter(function (job) {
+                if (filterPattern) {
+                    return !!filterPattern.test(job.name);
+                } else {
+                    return true;
+                }
+            });
             if (localStorage.sorting == 'status') {
                 jobs.sort(sortByStatus);
             } else {
                 jobs.sort(sortByName);
             }
-            for (var i in response.jobs)
-                topStatus = Math.max(topStatus, STATUSES[response.jobs[i].color]);
+            jobs.forEach(function (job) {
+                topStatus = Math.max(topStatus, STATUSES[job.color]);
+            });
         }
         handleSuccess(topStatus);
         return;
@@ -97,7 +109,7 @@ function handleError(error) {
 function sortByName(a, b) {
     var o1 = a.name.toLowerCase();
     var o2 = b.name.toLowerCase();
-    
+
     if (o1 < o2) return desc ? 1 : -1;
     else if (o2 < o1) return desc ? -1 : 1;
     else return 0;

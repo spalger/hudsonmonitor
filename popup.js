@@ -23,15 +23,15 @@ function init() {
 
 	document.getElementById('refresh').addEventListener('click', function() {console.log('ok');bg['doRequest']();window.location.reload();});
 	document.getElementById('monitor').addEventListener('click', function() {bg['openTab']();window.close();});
-	
+
 	if (bg.jobs) {
-		for (var i in bg.jobs) {
+		bg.jobs.forEach(function (job, i) {
 			var tr = table.insertRow(i);
 			var sym = tr.insertCell(0);
 			sym.innerHTML = getImage(STATUSES[bg.jobs[i].color]);
 			var lnk = tr.insertCell(1);
 			lnk.innerHTML = bg.jobs[i].name.link(bg.jobs[i].url);
-		}
+		});
 	} else {
 		var p = document.createElement('p');
 		p.innerHTML = 'Please check the <a href="options.html">configuration</a>.';
@@ -56,5 +56,7 @@ function getImage(status) {
 		return '?';
 	}
 }
+
+
 
 document.addEventListener('DOMContentLoaded', init);

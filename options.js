@@ -20,6 +20,9 @@ var refreshDropdown;
 var authCheckbox;
 var usernameInput;
 var passwordInput;
+var filterCheckbox;
+var filterText;
+var filterCaseSensitive;
 var sortByName;
 var sortByStatus;
 var sortDesc;
@@ -44,7 +47,7 @@ function init() {
 
     saveButton.addEventListener('click', save);
     cancelButton.addEventListener('click', init);
-    
+
     urlInput = document.getElementById('url');
     errorImage = document.getElementById('error');
     urlInput.value = localStorage.url || 'http://';
@@ -53,7 +56,7 @@ function init() {
     } else {
         errorImage.style.visibility = 'hidden';
     }
-    
+
     refreshDropdown = document.getElementById('refresh');
     var refreshTime = localStorage.refreshTime || REFRESH_DEFAULT;
     for (var i = 0; i < refreshDropdown.options.length; i++) {
@@ -62,7 +65,7 @@ function init() {
             break;
         }
     }
-    
+
     authCheckbox = document.getElementById('auth');
     usernameInput = document.getElementById('username');
     passwordInput = document.getElementById('password');
@@ -77,7 +80,22 @@ function init() {
         usernameInput.disabled = true;
         passwordInput.disabled = true;
     }
-    
+
+    filterCheckbox = document.getElementById('enableFilter');
+    filterText = document.getElementById('filterText');
+    filterCaseSensitive = document.getElementById('filterCaseSensitive');
+    if (typeof localStorage.filterText == 'string') {
+        filterCheckbox.checked = true;
+        filterText.value = localStorage.filterText || '';
+        filterCaseSensitive.checked = !!localStorage.filterCaseSensitive;
+    } else {
+        filterCheckbox.checked = false;
+        filterText.value = '';
+        filterCaseSensitive.checked = false;
+        filterText.disabled = true;
+        filterCaseSensitive.disabled = true;
+    }
+
     sortByName = document.getElementById('sortByName');
     sortByStatus = document.getElementById('sortByStatus');
     sortDesc = document.getElementById('sortDesc');
@@ -88,11 +106,11 @@ function init() {
     }
     if (typeof localStorage.desc == 'string')
         sortDesc.checked = true;
-    
+
     greenBalls = document.getElementById('greenBalls');
     if (typeof localStorage.green == 'string')
         greenBalls.checked = true;
-    
+
     markClean();
 }
 
@@ -102,13 +120,13 @@ function save() {
     } else {
         delete localStorage.url;
     }
-    
+
     if (refreshDropdown.value != REFRESH_DEFAULT) {
         localStorage.refreshTime = refreshDropdown.value;
     } else {
         delete localStorage.refreshTime;
     }
-    
+
     if (authCheckbox.checked) {
         localStorage.username = usernameInput.value;
         localStorage.password = passwordInput.value;
@@ -116,7 +134,15 @@ function save() {
         delete localStorage.username;
         delete localStorage.password;
     }
-    
+
+    if (filterCheckbox.checked) {
+        localStorage.filterText = filterText.value;
+        localStorage.filterCaseSensitive = filterCaseSensitive.value ? 'true' : '';
+    } else {
+        delete localStorage.filterText;
+        delete localStorage.filterCaseSensitive;
+    }
+
     if (sortByStatus.checked == true) {
         localStorage.sorting = 'status';
     } else {
@@ -127,13 +153,13 @@ function save() {
     } else {
         delete localStorage.desc;
     }
-    
+
     if (greenBalls.checked == true) {
         localStorage.green = 'true';
     } else {
         delete localStorage.green;
     }
-    
+
     init();
     chrome.extension.getBackgroundPage()["init"]();
 }
@@ -144,7 +170,7 @@ function markDirty() {
     } else {
         errorImage.style.visibility = 'hidden';
     }
-    
+
     if (authCheckbox.checked == true) {
         usernameInput.disabled = false;
         passwordInput.disabled = false;
@@ -152,7 +178,15 @@ function markDirty() {
         usernameInput.disabled = true;
         passwordInput.disabled = true;
     }
-    
+
+    if (filterCheckbox.checked == true) {
+        filterText.disabled = false;
+        filterCaseSensitive.disabled = false;
+    } else {
+        filterText.disabled = true;
+        filterCaseSensitive.disabled = true;
+    }
+
     saveButton.disabled = false;
 }
 
