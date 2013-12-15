@@ -11,6 +11,7 @@ You can [install](https://chrome.google.com/extensions/detail/lnalnbkkohdcnaapee
 ### Version 0.3.2
 
 * Merged Pull Request #7 from Nick Doyle (Manifest v2 & updated styling)
+* add desktop notifications
 
 ### Version 0.3.1
 

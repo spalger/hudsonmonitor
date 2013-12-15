@@ -19,7 +19,6 @@
 		<link rel="stylesheet" type="text/css" href="style.css"/>
 		<script type="text/javascript" src="constants.js"></script>
 		<script type="text/javascript" src="options.js"></script>
-
 	</head>
 	<body>
 		<h1>Hudson Monitor</h1>
@@ -48,6 +47,29 @@
 							<option value="50">50 Minutes</option>
 							<option value="55">55 Minutes</option>
 							<option value="60">60 Minutes</option>
+						</select>
+					</td>
+				</tr>
+			</table>
+    </fieldset>
+		<fieldset>
+			<legend>Notifications</legend>
+			<table>
+				<tr>
+          <td>
+            <input type="checkbox" id="showNotification" onchange="markDirty();requestUserPermission();" /><label for="show_notification">Show desktop notifications</label>
+          </td>
+        </tr>
+				<tr>
+					<td><label for="showNotificationTimeDropdown">Hide notification after:</label></td>
+					<td colspan="2">
+						<select id="showNotificationTimeDropdown" name="showNotificationTimeDropdown" onchange="markDirty()">
+							<option value="0">never hide</option>
+							<option value="5">5 seconds</option>
+							<option value="15">15 seconds</option>
+							<option value="30">30 seconds</option>
+							<option value="60">1 minute</option>
+							<option value="300">5 minutes</option>
 						</select>
 					</td>
 				</tr>
@@ -102,4 +124,3 @@
 		</div>
 	</body>
 </html>
-
