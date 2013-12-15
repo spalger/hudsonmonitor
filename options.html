@@ -19,7 +19,6 @@
 		<link rel="stylesheet" type="text/css" href="style.css"/>
 		<script type="text/javascript" src="constants.js"></script>
 		<script type="text/javascript" src="options.js"></script>
-
 	</head>
 	<body>
 		<h1>Hudson Monitor</h1>
@@ -48,6 +47,24 @@
 							<option value="50">50 Minutes</option>
 							<option value="55">55 Minutes</option>
 							<option value="60">60 Minutes</option>
+						</select>
+					</td>
+				</tr>
+			</table>
+    </fieldset>
+		<fieldset>
+			<legend><input type="checkbox" id="showNotifications"/> Desktop Notifications</legend>
+			<table>
+				<tr>
+					<td><label for="notificationTimeout">Hide notification after:</label></td>
+					<td colspan="2">
+						<select id="notificationTimeout" name="notificationTimeout">
+							<option value="0">never hide</option>
+							<option value="5">5 seconds</option>
+							<option value="15">15 seconds</option>
+							<option value="30">30 seconds</option>
+							<option value="60">1 minute</option>
+							<option value="300">5 minutes</option>
 						</select>
 					</td>
 				</tr>
@@ -95,6 +112,24 @@
 				</tr>
 			</table>
 		</fieldset>
+		<fieldset>
+			<legend><input id="enableFilter" type="checkbox" name="enabled"/> Filter by job name</legend>
+			<table>
+				<tr>
+					<td><input id="filterText" type="text" name="filterText" style="width:200px"/></td>
+					<td><input id="filterCaseSensitive" type="checkbox" name="filterCaseSensitive" value="yes" title="make filter case-sensitive" checked/></td>
+				</tr>
+				<tr>
+					<td colspan="2">
+						<p>
+							The filter text is converted into a regular expression. Only things that match
+							the expression are displayed in the popup and considered for the main status
+							image.
+						</p>
+					</td>
+				</tr>
+			</table>
+		</fieldset>
 		<div class="optionform">
 			<a href="license.html">License</a>
 			<input type="button" id="save" name="save" value="Save"/>
@@ -102,4 +137,3 @@
 		</div>
 	</body>
 </html>
-

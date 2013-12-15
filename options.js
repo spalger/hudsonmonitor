@@ -1,3 +1,5 @@
+/* jshint eqeqeq:false, -W041: false, undef: true, browser:true */
+/* global REFRESH_DEFAULT, REQUEST_TIMEOUT, STATUSES, chrome, webkitNotifications */
 /*
    Copyright 2010 Henning Hoefer
 
@@ -14,27 +16,37 @@
    limitations under the License.
 */
 var saveButton;
+var cancelButton;
 var urlInput;
 var errorImage;
 var refreshDropdown;
 var authCheckbox;
 var usernameInput;
 var passwordInput;
+var filterCheckbox;
+var filterText;
+var filterCaseSensitive;
 var sortByName;
 var sortByStatus;
 var sortDesc;
+var greenBalls;
+var notificationCheckbox;
+var notificationTimeout;
 
 
 function init() {
+    var inputs;
+    var i;
+
     // All text inputs onKeyup = makeDirty
-    var inputs = document.querySelectorAll('input[type=text]');
-    for (var i = 0; i < inputs.length; i++) {
+    inputs = document.querySelectorAll('input[type=text]');
+    for (i = 0; i < inputs.length; i++) {
         inputs[i].addEventListener('keyup', markDirty);
     }
 
     // All other inputs onChange = makeDirty
-    var inputs = document.querySelectorAll('input[type=password], input[type=checkbox], input[type=radio], select');
-    for (var i = 0; i < inputs.length; i++) {
+    inputs = document.querySelectorAll('input[type=password], input[type=checkbox], input[type=radio], select');
+    for (i = 0; i < inputs.length; i++) {
         inputs[i].addEventListener('change', markDirty);
     }
 
@@ -44,7 +56,7 @@ function init() {
 
     saveButton.addEventListener('click', save);
     cancelButton.addEventListener('click', init);
-    
+
     urlInput = document.getElementById('url');
     errorImage = document.getElementById('error');
     urlInput.value = localStorage.url || 'http://';
@@ -53,16 +65,33 @@ function init() {
     } else {
         errorImage.style.visibility = 'hidden';
     }
-    
+
     refreshDropdown = document.getElementById('refresh');
     var refreshTime = localStorage.refreshTime || REFRESH_DEFAULT;
-    for (var i = 0; i < refreshDropdown.options.length; i++) {
+    for (i = 0; i < refreshDropdown.options.length; i++) {
         if (refreshDropdown.options[i].value == refreshTime) {
             refreshDropdown.selectedIndex = i;
             break;
         }
     }
-    
+
+    notificationCheckbox = document.getElementById('showNotifications');
+    notificationTimeout = document.getElementById('notificationTimeout');
+    if (localStorage.showNotification == 'true') {
+        notificationCheckbox.checked = true;
+        notificationTimeout.disabled = false;
+    } else {
+        notificationCheckbox.checked = false;
+        notificationTimeout.disabled = true;
+    }
+    if (localStorage.notificationTimeout) {
+        notificationTimeout.options.forEach(function (option, i) {
+            if (option.value == localStorage.notificationTimeout) {
+                notificationTimeout.selectedIndex = i;
+            }
+        });
+    }
+
     authCheckbox = document.getElementById('auth');
     usernameInput = document.getElementById('username');
     passwordInput = document.getElementById('password');
@@ -77,7 +106,22 @@ function init() {
         usernameInput.disabled = true;
         passwordInput.disabled = true;
     }
-    
+
+    filterCheckbox = document.getElementById('enableFilter');
+    filterText = document.getElementById('filterText');
+    filterCaseSensitive = document.getElementById('filterCaseSensitive');
+    if (typeof localStorage.filterText == 'string') {
+        filterCheckbox.checked = true;
+        filterText.value = localStorage.filterText || '';
+        filterCaseSensitive.checked = !!localStorage.filterCaseSensitive;
+    } else {
+        filterCheckbox.checked = false;
+        filterText.value = '';
+        filterCaseSensitive.checked = false;
+        filterText.disabled = true;
+        filterCaseSensitive.disabled = true;
+    }
+
     sortByName = document.getElementById('sortByName');
     sortByStatus = document.getElementById('sortByStatus');
     sortDesc = document.getElementById('sortDesc');
@@ -88,11 +132,11 @@ function init() {
     }
     if (typeof localStorage.desc == 'string')
         sortDesc.checked = true;
-    
+
     greenBalls = document.getElementById('greenBalls');
     if (typeof localStorage.green == 'string')
         greenBalls.checked = true;
-    
+
     markClean();
 }
 
@@ -102,13 +146,19 @@ function save() {
     } else {
         delete localStorage.url;
     }
-    
+
+    if (notificationTimeout.value != "0") {
+      localStorage.notificationTimeout = notificationTimeout.value;
+    } else {
+      delete localStorage.notificationTimeout;
+    }
+
     if (refreshDropdown.value != REFRESH_DEFAULT) {
         localStorage.refreshTime = refreshDropdown.value;
     } else {
         delete localStorage.refreshTime;
     }
-    
+
     if (authCheckbox.checked) {
         localStorage.username = usernameInput.value;
         localStorage.password = passwordInput.value;
@@ -116,7 +166,15 @@ function save() {
         delete localStorage.username;
         delete localStorage.password;
     }
-    
+
+    if (filterCheckbox.checked) {
+        localStorage.filterText = filterText.value;
+        localStorage.filterCaseSensitive = filterCaseSensitive.value ? 'true' : '';
+    } else {
+        delete localStorage.filterText;
+        delete localStorage.filterCaseSensitive;
+    }
+
     if (sortByStatus.checked == true) {
         localStorage.sorting = 'status';
     } else {
@@ -127,13 +185,19 @@ function save() {
     } else {
         delete localStorage.desc;
     }
-    
+
     if (greenBalls.checked == true) {
         localStorage.green = 'true';
     } else {
         delete localStorage.green;
     }
-    
+
+    if (notificationCheckbox.checked == true) {
+      localStorage.showNotification = 'true';
+    } else {
+      delete localStorage.showNotification;
+    }
+
     init();
     chrome.extension.getBackgroundPage()["init"]();
 }
@@ -144,7 +208,7 @@ function markDirty() {
     } else {
         errorImage.style.visibility = 'hidden';
     }
-    
+
     if (authCheckbox.checked == true) {
         usernameInput.disabled = false;
         passwordInput.disabled = false;
@@ -152,12 +216,52 @@ function markDirty() {
         usernameInput.disabled = true;
         passwordInput.disabled = true;
     }
-    
+
+    if (notificationCheckbox.checked == true) {
+        requestUserPermission();
+        notificationTimeout.disabled = false;
+    } else {
+        notificationTimeout.disabled = true;
+    }
+
+    if (filterCheckbox.checked == true) {
+        filterText.disabled = false;
+        filterCaseSensitive.disabled = false;
+    } else {
+        filterText.disabled = true;
+        filterCaseSensitive.disabled = true;
+    }
+
     saveButton.disabled = false;
 }
 
 function markClean() {
     saveButton.disabled = true;
+}
+
+function requestUserPermission() {
+    try {
+        if (notificationCheckbox.checked) {
+            if (checkUserPermission())
+                return;
+
+            if (typeof webkitNotifications != "undefined") {
+                webkitNotifications.requestPermission(function () {
+                    notificationCheckbox.checked = checkUserPermission();
+                });
+            }
+        }
+    } catch (e) {
+        notificationCheckbox.checked = false;
+    }
+}
+
+function checkUserPermission() {
+    try {
+        return (webkitNotifications.checkPermission() === 0);
+    } catch (e) {
+        return false;
+    }
 }
 
 document.addEventListener('DOMContentLoaded', init);
